@@ -194,7 +194,7 @@ char *mkdtemp(char *pattern) {
 	// TODO: Do an exponential search.
 	for(size_t i = 0; i < 999999; i++) {
 		__ensure(sprintf(pattern + (n - 6), "%06zu", i) == 6);
-		if(int e = mlibc::sys_mkdir(pattern); !e) {
+		if(int e = mlibc::sys_mkdirat(AT_FDCWD, pattern, S_IRWXU); !e) {
 			return pattern;
 		}else if(e != EEXIST) {
 			errno = e;

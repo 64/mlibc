@@ -73,14 +73,13 @@ int futimens(int fd, const struct timespec times[2]) {
 	return 0;
 }
 
-int mkdir(const char *path, mode_t) {
-	mlibc::infoLogger() << "\e[31mmlibc: mkdir() ignores its mode\e[39m" << frg::endlog;
-	if(!mlibc::sys_mkdir) {
+int mkdir(const char *path, mode_t mode) {
+	if(!mlibc::sys_mkdirat) {
 		MLIBC_MISSING_SYSDEP();
 		errno = ENOSYS;
 		return -1;
 	}
-	if(int e = mlibc::sys_mkdir(path); e) {
+	if(int e = mlibc::sys_mkdirat(AT_FDCWD, path, mode); e) {
 		errno = e;
 		return -1;
 	}
@@ -88,7 +87,6 @@ int mkdir(const char *path, mode_t) {
 }
 
 int mkdirat(int dirfd, const char *path, mode_t mode) {
-	mlibc::infoLogger() << "\e[31mmlibc: mkdirat() ignores its mode\e[39m" << frg::endlog;
 	if(!mlibc::sys_mkdirat) {
 		MLIBC_MISSING_SYSDEP();
 		errno = ENOSYS;

@@ -74,11 +74,10 @@ int open_by_handle_at(int, struct file_handle *, int) {
 
 int open(const char *pathname, int flags, ...) {
 	int fd;
-	if(int e = mlibc::sys_open(pathname, flags, &fd); e) {
+	if(int e = mlibc::sys_openat(AT_FDCWD, pathname, flags, &fd); e) {
 		errno = e;
 		return -1;
 	}
 	return fd;
-
 }
 

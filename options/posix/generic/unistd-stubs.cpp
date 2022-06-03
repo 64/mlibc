@@ -469,12 +469,12 @@ int lchown(const char *path, uid_t uid, gid_t gid) {
 }
 
 int link(const char *old_path, const char *new_path) {
-	if(!mlibc::sys_link) {
+	if(!mlibc::sys_linkat) {
 		MLIBC_MISSING_SYSDEP();
 		errno = ENOSYS;
 		return -1;
 	}
-	if(int e = mlibc::sys_link(old_path, new_path); e) {
+	if(int e = mlibc::sys_linkat(AT_FDCWD, old_path, AT_FDCWD, new_path, 0); e) {
 		errno = e;
 		return -1;
 	}
@@ -726,12 +726,12 @@ void swab(const void *__restrict, void *__restrict, ssize_t) {
 }
 
 int symlink(const char *target_path, const char *link_path) {
-	if(!mlibc::sys_symlink) {
+	if(!mlibc::sys_symlinkat) {
 		MLIBC_MISSING_SYSDEP();
 		errno = ENOSYS;
 		return -1;
 	}
-	if(int e = mlibc::sys_symlink(target_path, link_path); e) {
+	if(int e = mlibc::sys_symlinkat(target_path, AT_FDCWD, link_path); e) {
 		errno = e;
 		return -1;
 	}
@@ -1150,12 +1150,12 @@ pid_t getppid(void) {
 }
 
 int access(const char *path, int mode) {
-	if(!mlibc::sys_access) {
+	if(!mlibc::sys_faccessat) {
 		MLIBC_MISSING_SYSDEP();
 		errno = ENOSYS;
 		return -1;
 	}
-	if(int e = mlibc::sys_access(path, mode); e) {
+	if(int e = mlibc::sys_faccessat(AT_FDCWD, path, mode, 0); e) {
 		errno = e;
 		return -1;
 	}
