@@ -101,20 +101,6 @@ int abstract_file::read(char *buffer, size_t max_size, size_t *actual_size) {
 	if(_init_bufmode())
 		return -1;
 
-	bool wroteUngetc = false;
-	if (_ungetStorage) {
-		buffer[0] = _ungetStorage.value();
-		buffer++;
-		max_size--;
-		_ungetStorage = {};
-		wroteUngetc = true;
-
-		if (max_size == 0) {
-			*actual_size = 1;
-			return 0;
-		}
-	}
-
 	if(globallyDisableBuffering || _bufmode == buffer_mode::no_buffer) {
 		size_t io_size;
 		if(int e = io_read(buffer, max_size, &io_size); e) {
@@ -123,7 +109,7 @@ int abstract_file::read(char *buffer, size_t max_size, size_t *actual_size) {
 		}
 		if(!io_size)
 			__status_bits |= __MLIBC_EOF_BIT;
-		*actual_size = io_size + (wroteUngetc ? 1 : 0);
+		*actual_size = io_size;
 		return 0;
 	}
 
@@ -245,7 +231,6 @@ int abstract_file::write(const char *buffer, size_t max_size, size_t *actual_siz
 
 int abstract_file::unget(char c) {
 	if(_ungetStorage) {
-		_ungetStorage = c;
 		return EOF;
 	} else {
 		_ungetStorage = c;

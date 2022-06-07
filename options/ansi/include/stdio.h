@@ -26,7 +26,11 @@ extern "C" {
 
 struct __mlibc_file_base {
 	// Buffer for I/O operations.
+	// We reserve a few extra bytes for ungetc operations. This means
+	// that __buffer_ptr will point a few bytes *into* the allocation,
+	// and __unget_ptr <= __buffer_ptr.
 	char *__buffer_ptr;
+	char *__unget_ptr;
 
 	// Number of bytes the buffer can hold.
 	size_t __buffer_size;

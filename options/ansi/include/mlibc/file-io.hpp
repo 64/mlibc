@@ -22,6 +22,39 @@ enum class buffer_mode {
 	full_buffer
 };
 
+struct __mlibc_file_base {
+	// Buffer for I/O operations.
+	// We reserve a few extra bytes for ungetc operations. This means
+	// that __buffer_ptr will point a few bytes *into* the allocation,
+	// and __unget_ptr <= __buffer_ptr.
+	char *__buffer_ptr;
+	char *__unget_ptr;
+
+	// Number of bytes the buffer can hold.
+	size_t __buffer_size;
+
+	// Current offset inside the buffer.
+	size_t __offset;
+
+	// Position inside the buffer that matches the current file pointer.
+	size_t __io_offset;
+
+	// Valid region of the buffer.
+	size_t __valid_limit;
+
+	// Begin and end of the dirty region inside the buffer.
+	size_t __dirty_begin;
+	size_t __dirty_end;
+
+	// 0 if we are currently reading from the buffer.
+	// 1 if we are currently writing to the buffer.
+	// This is only really important for pipe-like streams.
+	int __io_mode;
+
+	// EOF and error bits.
+	int __status_bits;
+};
+
 struct abstract_file : __mlibc_file_base {
 public:
 	abstract_file(void (*do_dispose)(abstract_file *) = nullptr);
@@ -68,7 +101,6 @@ private:
 	stream_type _type;
 	buffer_mode _bufmode;
 	void (*_do_dispose)(abstract_file *);
-	frg::optional<char> _ungetStorage;
 
 public:
 	// lock for file operations
