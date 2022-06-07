@@ -37,6 +37,12 @@ namespace {
 	// Useful when debugging the FILE implementation.
 	constexpr bool globallyDisableBuffering = false;
 
+	// This is the amount of extra bytes we tack onto each allocation
+	// to store ungetc'd characters. The value 8 follows musl.
+	// __buffer_ptr should point this many bytes into the allocation,
+	// and __buffer_ptr - __ungetc_ptr <= ungetcBufferSize should hold.
+	constexpr size_t ungetcBufferSize = 8;
+
 	// List of files that will be flushed before exit().
 	file_list &global_file_list() {
 		static frg::eternal<file_list> list;
@@ -54,6 +60,7 @@ abstract_file::abstract_file(void (*do_dispose)(abstract_file *))
 : _type{stream_type::unknown}, _bufmode{buffer_mode::unknown}, _do_dispose{do_dispose} {
 	// TODO: For __fwriting to work correctly, set the __io_mode to 1 if the write is write-only.
 	__buffer_ptr = nullptr;
+	__ungetc_ptr = nullptr;
 	__buffer_size = 4096;
 	__offset = 0;
 	__io_offset = 0;
@@ -72,7 +79,7 @@ abstract_file::~abstract_file() {
 				<< frg::endlog;
 
 	if(__buffer_ptr)
-		getAllocator().free(__buffer_ptr);
+		getAllocator().free(__buffer_ptr - ungetcBufferSize);
 
 	auto it = global_file_list().iterator_to(this);
 	global_file_list().erase(it);
@@ -405,8 +412,9 @@ void abstract_file::_ensure_allocation() {
 	if(__buffer_ptr)
 		return;
 
-	auto ptr = getAllocator().allocate(__buffer_size);
-	__buffer_ptr = reinterpret_cast<char *>(ptr);
+	auto ptr = getAllocator().allocate(__buffer_size + ungetcBufferSize);
+	__buffer_ptr = reinterpret_cast<char *>(ptr + ungetcBufferSize);
+	__ungetc_ptr = __buffer_ptr;
 }
 
 // --------------------------------------------------------------------------------------
