@@ -6,8 +6,7 @@
 namespace mlibc {
 
 inline Tcb *get_current_tcb() {
-	uintptr_t ptr;
-	asm ("mrs %0, tpidr_el0" : "=r"(ptr));
+	uintptr_t ptr = (uintptr_t)__builtin_thread_pointer();
 	return reinterpret_cast<Tcb *>(ptr);
 }
 

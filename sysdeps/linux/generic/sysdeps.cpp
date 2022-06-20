@@ -35,7 +35,7 @@ int sys_tcb_set(void *pointer) {
 		return e;
 #elif defined(__riscv)
 	uintptr_t thread_data = reinterpret_cast<uintptr_t>(pointer) + sizeof(Tcb);
-	asm volatile ("mv tp, %0" : "=r"(thread_data));
+	__builtin_set_thread_pointer((void *)thread_data);
 #else
 #error "Missing architecture specific code."
 #endif

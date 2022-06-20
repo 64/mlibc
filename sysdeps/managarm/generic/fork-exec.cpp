@@ -636,7 +636,7 @@ int sys_clone(void *entry, void *user_arg, void *tcb, pid_t *pid_out) {
 
 int sys_tcb_set(void *pointer) {
 #if defined(__aarch64__)
-	asm volatile ("msr tpidr_el0, %0" :: "r"(pointer));
+	__builtin_set_thread_pointer(pointer);
 #else
 	HEL_CHECK(helWriteFsBase(pointer));
 #endif
